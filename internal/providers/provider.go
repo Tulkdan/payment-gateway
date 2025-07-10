@@ -52,6 +52,7 @@ func charge(charge *domain.Payment, provider Provider) chan *domain.Provider {
 		response, err := provider.Charge(charge)
 		if err != nil {
 			close(ch)
+			return
 		}
 		ch <- response
 	}()
