@@ -2,16 +2,18 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Tulkdan/payment-gateway/internal/domain"
 	"github.com/Tulkdan/payment-gateway/internal/dto"
+	"github.com/Tulkdan/payment-gateway/internal/providers"
 )
 
-type PaymentService struct{}
+type PaymentService struct {
+	providers *providers.UseProviders
+}
 
-func NewPaymentService() *PaymentService {
-	return &PaymentService{}
+func NewPaymentService(providers *providers.UseProviders) *PaymentService {
+	return &PaymentService{providers: providers}
 }
 
 func (p *PaymentService) CreatePayment(ctx context.Context, input dto.PaymentInput) (*dto.PaymentOutput, error) {
@@ -20,7 +22,10 @@ func (p *PaymentService) CreatePayment(ctx context.Context, input dto.PaymentInp
 		return nil, err
 	}
 
-	fmt.Printf("%+v", payment)
+	_, err = p.providers.Payment(payment)
+	if err != nil {
+		return nil, err
+	}
 
 	return &dto.PaymentOutput{Message: "Processed successfully"}, nil
 }

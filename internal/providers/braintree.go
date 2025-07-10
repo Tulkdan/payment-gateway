@@ -39,7 +39,7 @@ type BraintreeCharge struct {
 
 func (b BraintreeProvider) Charge(request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
-	response, err := http.Post(b.Url, "application/json", bytes.NewBuffer(body))
+	response, err := http.Post(b.Url+"/charges", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

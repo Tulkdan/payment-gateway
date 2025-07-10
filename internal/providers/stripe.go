@@ -35,7 +35,7 @@ type StripeCharge struct {
 
 func (b StripeProvider) Charge(request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
-	response, err := http.Post(b.Url, "application/json", bytes.NewBuffer(body))
+	response, err := http.Post(b.Url+"/transactions", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
