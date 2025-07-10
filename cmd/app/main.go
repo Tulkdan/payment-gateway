@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
 	"os/signal"
 
-	"github.com/Tulkdan/payment-gateway/internal/lib"
 	"github.com/Tulkdan/payment-gateway/internal/providers"
 	"github.com/Tulkdan/payment-gateway/internal/service"
 	"github.com/Tulkdan/payment-gateway/internal/web"
@@ -22,15 +20,6 @@ func getEnv(key, defaultValue string) string {
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-
-	otelShutdown, err := lib.SetupOTelSDK(ctx)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	providers := providers.NewUseProviders([]providers.Provider{
 		providers.NewBraintreeProvider(getEnv("BRAINTREE_URL", "localhost:8001")),
@@ -48,11 +37,11 @@ func main() {
 	}()
 
 	select {
-	case err = <-srvErr:
+	case <-srvErr:
 		return
 	case <-ctx.Done():
 		stop()
 	}
 
-	err = server.Shutdown()
+	server.Shutdown()
 }

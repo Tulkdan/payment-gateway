@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 var thirtySecondTimout = 30 * time.Second
 
 type Provider interface {
-	Charge(request *domain.Payment) (*domain.Provider, error)
+	Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error)
 }
 
 type UseProviders struct {
@@ -29,12 +30,12 @@ func ConfigurableUseProvider(providers []Provider, timeout time.Duration) *UsePr
 	}
 }
 
-func (p *UseProviders) Payment(payment *domain.Payment) (*domain.Provider, error) {
+func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*domain.Provider, error) {
 	var err error = nil
 
 	for _, provider := range p.providers {
 		select {
-		case data := <-charge(payment, provider):
+		case data := <-charge(ctx, payment, provider):
 			return data, nil
 		case <-time.After(p.timeout):
 			err = errors.New("Timeout")
@@ -45,11 +46,11 @@ func (p *UseProviders) Payment(payment *domain.Payment) (*domain.Provider, error
 	return nil, err
 }
 
-func charge(charge *domain.Payment, provider Provider) chan *domain.Provider {
+func charge(ctx context.Context, charge *domain.Payment, provider Provider) chan *domain.Provider {
 	ch := make(chan *domain.Provider)
 
 	go func() {
-		response, err := provider.Charge(charge)
+		response, err := provider.Charge(ctx, charge)
 		if err != nil {
 			close(ch)
 			return

@@ -8,12 +8,12 @@ import (
 
 	"github.com/Tulkdan/payment-gateway/internal/service"
 	"github.com/Tulkdan/payment-gateway/internal/web/handler"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"github.com/Tulkdan/payment-gateway/internal/web/middleware"
 )
 
 type Server struct {
 	port   string
-	router http.Handler
+	router *http.ServeMux
 	server *http.Server
 
 	paymentsService *service.PaymentService
@@ -29,20 +29,15 @@ func NewServer(paymentsService *service.PaymentService, port string) *Server {
 func (s *Server) ConfigureRouter() {
 	mux := http.NewServeMux()
 
-	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-		mux.Handle(pattern, handler)
-	}
-
 	paymentsHandler := handler.NewPaymentsHandler(s.paymentsService)
 
-	handleFunc("POST /payments", paymentsHandler.Create)
+	mux.HandleFunc("POST /payments", middleware.WithRequestId(paymentsHandler.Create))
 	// r.HandleFunc("POST /refunds", func(http.ResponseWriter, *http.Request) {})
 	// r.HandleFunc("GET /payments/{id}", func(w http.ResponseWriter, r *http.Request) {
 	// id := r.PathValue("id")
 	// })
 
-	s.router = otelhttp.NewHandler(mux, "/")
+	s.router = mux
 }
 
 func (s *Server) Start(ctx context.Context) error {

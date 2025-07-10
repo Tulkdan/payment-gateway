@@ -1,6 +1,7 @@
 package providers_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +18,8 @@ func TestStripe(t *testing.T) {
 	t.Run("should make request to url", func(t *testing.T) {
 		id, _ := uuid.Parse("2ee70bcb-5cb9-4412-a35f-c2a15fb88ef1")
 		cardId, _ := uuid.Parse("ed6ecd4c-81d5-4e63-bb12-99439ae559e7")
+		ctx := context.WithValue(t.Context(), "request-id", uuid.New().String())
+
 		serverResponse := &providers.StripeChargeResponse{
 			Id:             id,
 			CreatedAt:      time.Now().Format("YYYY-MM-DD"),
@@ -54,7 +57,7 @@ func TestStripe(t *testing.T) {
 		}
 
 		provider := providers.NewStripeProvider(server.URL)
-		response, err := provider.Charge(charge)
+		response, err := provider.Charge(ctx, charge)
 
 		if err != nil {
 			t.Fatalf("got an error but didn't want one %q", err)

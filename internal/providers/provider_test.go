@@ -1,6 +1,7 @@
 package providers_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ type SpyProvider struct {
 	Response *domain.Provider
 }
 
-func (s *SpyProvider) Charge(request *domain.Payment) (*domain.Provider, error) {
+func (s *SpyProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
 	time.Sleep(s.Timeout)
 	s.Calls++
 
@@ -29,7 +30,7 @@ func TestProvider(t *testing.T) {
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
 		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, 15*time.Millisecond)
-		data, err := useProvider.Payment(payment)
+		data, err := useProvider.Payment(context.Background(), payment)
 
 		if err != nil {
 			t.Fatal("Got error. didn't want one")
@@ -50,7 +51,7 @@ func TestProvider(t *testing.T) {
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
 		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, 15*time.Millisecond)
-		data, err := useProvider.Payment(payment)
+		data, err := useProvider.Payment(context.Background(), payment)
 
 		if err != nil {
 			t.Fatal("Got error. didn't want one")
@@ -71,7 +72,7 @@ func TestProvider(t *testing.T) {
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
 		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, 5*time.Millisecond)
-		data, err := useProvider.Payment(payment)
+		data, err := useProvider.Payment(context.Background(), payment)
 
 		if data != nil {
 			t.Fatalf("Got data but didn't expected one, got %q", data)

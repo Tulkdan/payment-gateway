@@ -22,7 +22,7 @@ func (p *PaymentService) CreatePayment(ctx context.Context, input dto.PaymentInp
 		return nil, err
 	}
 
-	_, err = p.providers.Payment(payment)
+	_, err = p.providers.Payment(ctx, payment)
 	if err != nil {
 		return nil, err
 	}

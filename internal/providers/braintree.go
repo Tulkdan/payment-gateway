@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -37,13 +38,20 @@ type BraintreeCharge struct {
 	PaymentMethod BraintreeChargePaymentMethod `json:"paymentMethod"`
 }
 
-func (b BraintreeProvider) Charge(request *domain.Payment) (*domain.Provider, error) {
+func (b BraintreeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
-	response, err := http.Post(b.Url+"/charges", "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/charges", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("transaction-id", ctx.Value("request-id").(string))
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	return b.responseCharge(response)
 }
 

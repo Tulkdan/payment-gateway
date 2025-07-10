@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -33,9 +34,17 @@ type StripeCharge struct {
 	Card        StripeChargeCard `json:"card"`
 }
 
-func (b StripeProvider) Charge(request *domain.Payment) (*domain.Provider, error) {
+func (b StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
-	response, err := http.Post(b.Url+"/transactions", "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/transactions", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("transaction-id", ctx.Value("request-id").(string))
+
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
