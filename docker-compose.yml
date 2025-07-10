@@ -1,0 +1,29 @@
+services:
+  api-gateway:
+    build:
+      dockerfile: $PWD/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      BRAINTREE_URL: stripe
+      STRIPE_URL: braintree
+    depends_on:
+      - stripe
+      - braintree
+
+  stripe:
+    build:
+      dockerfile: $PWD/Dockerfile-stubby
+    environment:
+      PORT: 8882
+    volumes:
+      - $PWD/mocks/stripe.yml:/app/mock.yml
+
+  braintree:
+    build:
+      dockerfile: $PWD/Dockerfile-stubby
+    environment:
+      PORT: 8882
+    volumes:
+      - $PWD/mocks/braintree.yml:/app/mock.yml

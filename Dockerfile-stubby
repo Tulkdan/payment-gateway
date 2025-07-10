@@ -1,0 +1,7 @@
+FROM node:24
+
+RUN npm install -g stubby
+
+WORKDIR /app
+
+CMD ["stubby", "-d", "mock.yml"]

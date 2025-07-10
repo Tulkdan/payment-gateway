@@ -1,0 +1,27 @@
+- request:
+    url: ^/charge$
+    method: POST
+    headers:
+      content-type: application/json
+  response:
+    - status: 200
+      latency: 5000
+      headers:
+        content-type: application/json
+        server: stubbedServer/4.2
+      body: >
+        {
+        "amount": 1000,
+        "currency": "BRL",
+        "description": "",
+        "paymentMethod": {
+        "type": "card",
+        "card": {
+        "number": "",
+        "holderName": "",
+        "cvv": "",
+        "expirationDate": "22/2025",
+        "installments": 1
+        }
+        }
+        }

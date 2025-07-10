@@ -18,12 +18,13 @@ func getEnv(key, defaultValue string) string {
 
 func main() {
 	providers := providers.NewUseProviders([]providers.Provider{
-		providers.NewBraintreeProvider(getEnv("BRAINTREE_URL", "localhost:8000")),
-		providers.NewStripeProvider(getEnv("STRIPE_URL", "localhost:8001")),
+		providers.NewBraintreeProvider(getEnv("BRAINTREE_URL", "localhost:8001")),
+		providers.NewStripeProvider(getEnv("STRIPE_URL", "localhost:8002")),
 	})
 	paymentsService := service.NewPaymentService(providers)
 
-	server := web.NewServer(paymentsService, "8000")
+	port := getEnv("PORT", "8000")
+	server := web.NewServer(paymentsService, port)
 	server.ConfigureRouter()
 
 	if err := server.Start(); err != nil {
