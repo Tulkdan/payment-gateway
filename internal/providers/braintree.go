@@ -38,7 +38,7 @@ type BraintreeCharge struct {
 	PaymentMethod BraintreeChargePaymentMethod `json:"paymentMethod"`
 }
 
-func (b BraintreeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
+func (b *BraintreeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/charges", bytes.NewBuffer(body))
 	if err != nil {
@@ -55,7 +55,7 @@ func (b BraintreeProvider) Charge(ctx context.Context, request *domain.Payment) 
 	return b.responseCharge(response)
 }
 
-func (b BraintreeProvider) createChargeBody(request *domain.Payment) []byte {
+func (b *BraintreeProvider) createChargeBody(request *domain.Payment) []byte {
 	toSend := &BraintreeCharge{
 		Amount:      request.Amount,
 		Currency:    request.Currency,
@@ -87,7 +87,7 @@ type BraintreeChargeResponse struct {
 	CardId         uuid.UUID `json:"cardId"`
 }
 
-func (b BraintreeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
+func (b *BraintreeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
 	var data BraintreeChargeResponse
 	if err := json.NewDecoder(response.Body).Decode(&data); err != nil {
 		return nil, err
@@ -115,4 +115,8 @@ func (b BraintreeProvider) responseCharge(response *http.Response) (*domain.Prov
 		Status:         status,
 	}
 	return providerResponse, nil
+}
+
+func (b *BraintreeProvider) GetName() string {
+	return "Braintree Provider"
 }

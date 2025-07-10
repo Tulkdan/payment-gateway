@@ -1,5 +1,5 @@
 - request:
-    url: ^/charge$
+    url: ^/charges$
     method: POST
     headers:
       content-type: application/json

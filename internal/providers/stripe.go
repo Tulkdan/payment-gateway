@@ -34,7 +34,7 @@ type StripeCharge struct {
 	Card        StripeChargeCard `json:"card"`
 }
 
-func (b StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
+func (b *StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
 	body := b.createChargeBody(request)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/transactions", bytes.NewBuffer(body))
 	if err != nil {
@@ -52,7 +52,7 @@ func (b StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*d
 	return b.responseCharge(response)
 }
 
-func (b StripeProvider) createChargeBody(request *domain.Payment) []byte {
+func (b *StripeProvider) createChargeBody(request *domain.Payment) []byte {
 	toSend := &StripeCharge{
 		Amount:      request.Amount,
 		Currency:    request.Currency,
@@ -82,7 +82,7 @@ type StripeChargeResponse struct {
 	CardId         uuid.UUID `json:"cardId"`
 }
 
-func (b StripeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
+func (b *StripeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
 	var data StripeChargeResponse
 	if err := json.NewDecoder(response.Body).Decode(&data); err != nil {
 		return nil, err
@@ -110,4 +110,8 @@ func (b StripeProvider) responseCharge(response *http.Response) (*domain.Provide
 		Status:         status,
 	}
 	return providerResponse, nil
+}
+
+func (s *StripeProvider) GetName() string {
+	return "Stripe provider"
 }

@@ -6,38 +6,51 @@ import (
 	"time"
 
 	"github.com/Tulkdan/payment-gateway/internal/domain"
+	"go.uber.org/zap"
 )
 
 var thirtySecondTimout = 30 * time.Second
 
 type Provider interface {
+	GetName() string
 	Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error)
 }
 
 type UseProviders struct {
 	providers []Provider
 	timeout   time.Duration
+	logger    *zap.SugaredLogger
 }
 
-func NewUseProviders(providers []Provider) *UseProviders {
-	return ConfigurableUseProvider(providers, thirtySecondTimout)
+func NewUseProviders(providers []Provider, logger *zap.SugaredLogger) *UseProviders {
+	return ConfigurableUseProvider(providers, logger, thirtySecondTimout)
 }
 
-func ConfigurableUseProvider(providers []Provider, timeout time.Duration) *UseProviders {
+func ConfigurableUseProvider(providers []Provider, logger *zap.SugaredLogger, timeout time.Duration) *UseProviders {
 	return &UseProviders{
 		providers: providers,
+		logger:    logger,
 		timeout:   timeout,
 	}
 }
 
 func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*domain.Provider, error) {
 	var err error = nil
+	attempts := 0
 
 	for _, provider := range p.providers {
 		select {
-		case data := <-charge(ctx, payment, provider):
+		case data := <-p.charge(ctx, payment, provider):
+			p.logger.Debugw("[Payment] Sending request successfully",
+				"provider", provider.GetName(),
+				"attempt", attempts)
+
 			return data, nil
 		case <-time.After(p.timeout):
+			p.logger.Errorw("[Payment] Timeout for provider to respond",
+				"provider", provider.GetName(),
+				"attempt", attempts)
+
 			err = errors.New("Timeout")
 			continue
 		}
@@ -46,7 +59,7 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 	return nil, err
 }
 
-func charge(ctx context.Context, charge *domain.Payment, provider Provider) chan *domain.Provider {
+func (p *UseProviders) charge(ctx context.Context, charge *domain.Payment, provider Provider) chan *domain.Provider {
 	ch := make(chan *domain.Provider)
 
 	go func() {
