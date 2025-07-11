@@ -8,14 +8,16 @@ import (
 
 	"github.com/Tulkdan/payment-gateway/internal/domain"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type BraintreeProvider struct {
-	Url string
+	Url    string
+	logger *zap.Logger
 }
 
-func NewBraintreeProvider(url string) *BraintreeProvider {
-	return &BraintreeProvider{Url: url}
+func NewBraintreeProvider(url string, logger *zap.Logger) *BraintreeProvider {
+	return &BraintreeProvider{Url: url, logger: logger.Named("BraintreeProvider")}
 }
 
 type BraintreeChargeCard struct {
@@ -39,6 +41,11 @@ type BraintreeCharge struct {
 }
 
 func (b *BraintreeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
+	url := b.Url + "/transactions"
+
+	b.logger.Debug("Making request to charge",
+		zap.String("url", url))
+
 	body := b.createChargeBody(request)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/charges", bytes.NewBuffer(body))
 	if err != nil {

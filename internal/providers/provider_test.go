@@ -53,7 +53,7 @@ func TestProvider(t *testing.T) {
 	})
 
 	t.Run("should make request for second provider when first provider timeouts", func(t *testing.T) {
-		logger, _ := zap.NewProduction()
+		logger, _ := zap.NewDevelopment()
 		defer logger.Sync()
 
 		spyFirst := &SpyProvider{Timeout: 20 * time.Millisecond, Response: &domain.Provider{Description: "First"}}
@@ -77,7 +77,7 @@ func TestProvider(t *testing.T) {
 	})
 
 	t.Run("should return error when all providers timeout", func(t *testing.T) {
-		logger, _ := zap.NewProduction()
+		logger, _ := zap.NewDevelopment()
 		defer logger.Sync()
 
 		spyFirst := &SpyProvider{Timeout: 20 * time.Millisecond, Response: &domain.Provider{Description: "First"}}

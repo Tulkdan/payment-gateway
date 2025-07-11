@@ -12,10 +12,14 @@ import (
 	"github.com/Tulkdan/payment-gateway/internal/domain"
 	"github.com/Tulkdan/payment-gateway/internal/providers"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func TestBraintree(t *testing.T) {
 	t.Run("should make request to url", func(t *testing.T) {
+		logger, _ := zap.NewDevelopment()
+		defer logger.Sync()
+
 		id, _ := uuid.Parse("2ee70bcb-5cb9-4412-a35f-c2a15fb88ef1")
 		cardId, _ := uuid.Parse("ed6ecd4c-81d5-4e63-bb12-99439ae559e7")
 		ctx := context.WithValue(t.Context(), "request-id", uuid.New().String())
@@ -56,7 +60,7 @@ func TestBraintree(t *testing.T) {
 			CardId:         cardId,
 		}
 
-		provider := providers.NewBraintreeProvider(server.URL)
+		provider := providers.NewBraintreeProvider(server.URL, logger)
 		response, err := provider.Charge(ctx, charge)
 
 		if err != nil {

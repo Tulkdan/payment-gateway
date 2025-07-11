@@ -8,14 +8,16 @@ import (
 
 	"github.com/Tulkdan/payment-gateway/internal/domain"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type StripeProvider struct {
-	Url string
+	Url    string
+	logger *zap.Logger
 }
 
-func NewStripeProvider(url string) *StripeProvider {
-	return &StripeProvider{Url: url}
+func NewStripeProvider(url string, logger *zap.Logger) *StripeProvider {
+	return &StripeProvider{Url: url, logger: logger.Named("StripeProvider")}
 }
 
 type StripeChargeCard struct {
@@ -34,9 +36,14 @@ type StripeCharge struct {
 	Card        StripeChargeCard `json:"card"`
 }
 
-func (b *StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
-	body := b.createChargeBody(request)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.Url+"/transactions", bytes.NewBuffer(body))
+func (s *StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*domain.Provider, error) {
+	url := s.Url + "/transactions"
+
+	s.logger.Debug("Making request to charge",
+		zap.String("url", url))
+
+	body := s.createChargeBody(request)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +57,10 @@ func (b *StripeProvider) Charge(ctx context.Context, request *domain.Payment) (*
 	}
 	defer response.Body.Close()
 
-	return b.responseCharge(response)
+	return s.responseCharge(response)
 }
 
-func (b *StripeProvider) createChargeBody(request *domain.Payment) []byte {
+func (s *StripeProvider) createChargeBody(request *domain.Payment) []byte {
 	toSend := &StripeCharge{
 		Amount:      request.Amount,
 		Currency:    request.Currency,
@@ -83,7 +90,7 @@ type StripeChargeResponse struct {
 	CardId         uuid.UUID `json:"cardId"`
 }
 
-func (b *StripeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
+func (s *StripeProvider) responseCharge(response *http.Response) (*domain.Provider, error) {
 	var data StripeChargeResponse
 	if err := json.NewDecoder(response.Body).Decode(&data); err != nil {
 		return nil, err

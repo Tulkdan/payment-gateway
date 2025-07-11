@@ -26,8 +26,8 @@ func main() {
 	defer logger.Sync()
 
 	providers := providers.NewUseProviders([]providers.Provider{
-		providers.NewBraintreeProvider("http://" + getEnv("BRAINTREE_URL", "localhost:8001")),
-		providers.NewStripeProvider("http://" + getEnv("STRIPE_URL", "localhost:8002")),
+		providers.NewBraintreeProvider("http://"+getEnv("BRAINTREE_URL", "localhost:8001"), logger),
+		providers.NewStripeProvider("http://"+getEnv("STRIPE_URL", "localhost:8002"), logger),
 	}, logger)
 	paymentsService := service.NewPaymentService(providers)
 

@@ -29,7 +29,7 @@ func NewUseProviders(providers []Provider, logger *zap.Logger) *UseProviders {
 func ConfigurableUseProvider(providers []Provider, logger *zap.Logger, timeout time.Duration) *UseProviders {
 	return &UseProviders{
 		providers: providers,
-		logger:    logger,
+		logger:    logger.Named("UseProviders"),
 		timeout:   timeout,
 	}
 }
