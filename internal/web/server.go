@@ -16,12 +16,12 @@ type Server struct {
 	port   string
 	router *http.ServeMux
 	server *http.Server
-	logger *zap.SugaredLogger
+	logger *zap.Logger
 
 	paymentsService *service.PaymentService
 }
 
-func NewServer(paymentsService *service.PaymentService, port string, logger *zap.SugaredLogger) *Server {
+func NewServer(paymentsService *service.PaymentService, port string, logger *zap.Logger) *Server {
 	return &Server{
 		port:            port,
 		paymentsService: paymentsService,

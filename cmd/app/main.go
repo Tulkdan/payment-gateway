@@ -24,16 +24,15 @@ func main() {
 
 	logger, _ := zap.NewDevelopment()
 	defer logger.Sync()
-	sugar := logger.Sugar()
 
 	providers := providers.NewUseProviders([]providers.Provider{
 		providers.NewBraintreeProvider(getEnv("BRAINTREE_URL", "http://localhost:8001")),
 		providers.NewStripeProvider(getEnv("STRIPE_URL", "http://localhost:8002")),
-	}, sugar)
+	}, logger)
 	paymentsService := service.NewPaymentService(providers)
 
 	port := getEnv("PORT", "8000")
-	server := web.NewServer(paymentsService, port, sugar)
+	server := web.NewServer(paymentsService, port, logger)
 	server.ConfigureRouter()
 
 	srvErr := make(chan error, 1)

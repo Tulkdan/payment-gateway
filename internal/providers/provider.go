@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var thirtySecondTimout = 30 * time.Second
+var thirtySecondTimout = 5 * time.Second
 
 type Provider interface {
 	GetName() string
@@ -19,14 +19,14 @@ type Provider interface {
 type UseProviders struct {
 	providers []Provider
 	timeout   time.Duration
-	logger    *zap.SugaredLogger
+	logger    *zap.Logger
 }
 
-func NewUseProviders(providers []Provider, logger *zap.SugaredLogger) *UseProviders {
+func NewUseProviders(providers []Provider, logger *zap.Logger) *UseProviders {
 	return ConfigurableUseProvider(providers, logger, thirtySecondTimout)
 }
 
-func ConfigurableUseProvider(providers []Provider, logger *zap.SugaredLogger, timeout time.Duration) *UseProviders {
+func ConfigurableUseProvider(providers []Provider, logger *zap.Logger, timeout time.Duration) *UseProviders {
 	return &UseProviders{
 		providers: providers,
 		logger:    logger,
@@ -41,15 +41,15 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 	for _, provider := range p.providers {
 		select {
 		case data := <-p.charge(ctx, payment, provider):
-			p.logger.Debugw("[Payment] Sending request successfully",
-				"provider", provider.GetName(),
-				"attempt", attempts)
+			p.logger.Debug("[Payment] Received request successfully",
+				zap.String("provider", provider.GetName()),
+				zap.Int("attempt", attempts))
 
 			return data, nil
 		case <-time.After(p.timeout):
-			p.logger.Errorw("[Payment] Timeout for provider to respond",
-				"provider", provider.GetName(),
-				"attempt", attempts)
+			p.logger.Error("[Payment] Timeout for provider to respond",
+				zap.String("provider", provider.GetName()),
+				zap.Int("attempt", attempts))
 
 			err = errors.New("Timeout")
 			continue

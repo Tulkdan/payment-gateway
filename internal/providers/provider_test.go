@@ -31,14 +31,13 @@ func TestProvider(t *testing.T) {
 	t.Run("should make request for first provider", func(t *testing.T) {
 		logger, _ := zap.NewDevelopment()
 		defer logger.Sync()
-		sugar := logger.Sugar()
 
 		spyFirst := &SpyProvider{Timeout: 10 * time.Millisecond, Response: &domain.Provider{Description: "First"}}
 		spySecond := &SpyProvider{Timeout: 10 * time.Millisecond, Response: &domain.Provider{Description: "Second"}}
 
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
-		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, sugar, 15*time.Millisecond)
+		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, logger, 15*time.Millisecond)
 		data, err := useProvider.Payment(context.Background(), payment)
 
 		if err != nil {
@@ -56,14 +55,13 @@ func TestProvider(t *testing.T) {
 	t.Run("should make request for second provider when first provider timeouts", func(t *testing.T) {
 		logger, _ := zap.NewProduction()
 		defer logger.Sync()
-		sugar := logger.Sugar()
 
 		spyFirst := &SpyProvider{Timeout: 20 * time.Millisecond, Response: &domain.Provider{Description: "First"}}
 		spySecond := &SpyProvider{Timeout: 10 * time.Millisecond, Response: &domain.Provider{Description: "Second"}}
 
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
-		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, sugar, 15*time.Millisecond)
+		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, logger, 15*time.Millisecond)
 		data, err := useProvider.Payment(context.Background(), payment)
 
 		if err != nil {
@@ -81,14 +79,13 @@ func TestProvider(t *testing.T) {
 	t.Run("should return error when all providers timeout", func(t *testing.T) {
 		logger, _ := zap.NewProduction()
 		defer logger.Sync()
-		sugar := logger.Sugar()
 
 		spyFirst := &SpyProvider{Timeout: 20 * time.Millisecond, Response: &domain.Provider{Description: "First"}}
 		spySecond := &SpyProvider{Timeout: 20 * time.Millisecond, Response: &domain.Provider{Description: "Second"}}
 
 		payment, _ := domain.NewPayment(1000, "R$", "", "card", domain.PaymentCard{Number: "", HolderName: "", CVV: "", ExpirationDate: "02/2025", Installments: 1})
 
-		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, sugar, 5*time.Millisecond)
+		useProvider := providers.ConfigurableUseProvider([]providers.Provider{spyFirst, spySecond}, logger, 5*time.Millisecond)
 		data, err := useProvider.Payment(context.Background(), payment)
 
 		if data != nil {

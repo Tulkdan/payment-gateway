@@ -5,7 +5,7 @@
       content-type: application/json
   response:
     - status: 200
-      latency: 5000
+      latency: 15000
       headers:
         content-type: application/json
         server: stubbedServer/4.2

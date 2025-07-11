@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Tulkdan/payment-gateway/internal/domain"
 	"github.com/Tulkdan/payment-gateway/internal/dto"
@@ -23,12 +22,10 @@ func (p *PaymentService) CreatePayment(ctx context.Context, input dto.PaymentInp
 		return nil, err
 	}
 
-	data, err := p.providers.Payment(ctx, payment)
+	_, err = p.providers.Payment(ctx, payment)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(data)
 
 	return &dto.PaymentOutput{Message: "Processed successfully"}, nil
 }
