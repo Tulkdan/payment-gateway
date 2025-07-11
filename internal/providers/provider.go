@@ -39,13 +39,22 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 	attempts := 0
 
 	for _, provider := range p.providers {
+		dataCh, errCh := p.charge(ctx, payment, provider)
 		select {
-		case data := <-p.charge(ctx, payment, provider):
+		case data := <-dataCh:
 			p.logger.Debug("[Payment] Received request successfully",
 				zap.String("provider", provider.GetName()),
 				zap.Int("attempt", attempts))
 
 			return data, nil
+		case error := <-errCh:
+			p.logger.Error("[Payment] Received request with error",
+				zap.String("provider", provider.GetName()),
+				zap.Int("attempt", attempts),
+				zap.String("error", error.Error()))
+
+			err = error
+			continue
 		case <-time.After(p.timeout):
 			p.logger.Error("[Payment] Timeout for provider to respond",
 				zap.String("provider", provider.GetName()),
@@ -59,17 +68,18 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 	return nil, err
 }
 
-func (p *UseProviders) charge(ctx context.Context, charge *domain.Payment, provider Provider) chan *domain.Provider {
+func (p *UseProviders) charge(ctx context.Context, charge *domain.Payment, provider Provider) (chan *domain.Provider, chan error) {
 	ch := make(chan *domain.Provider)
+	chError := make(chan error)
 
 	go func() {
 		response, err := provider.Charge(ctx, charge)
 		if err != nil {
-			close(ch)
+			chError <- err
 			return
 		}
 		ch <- response
 	}()
 
-	return ch
+	return ch, chError
 }
