@@ -52,6 +52,8 @@ func (b *BraintreeProvider) Charge(ctx context.Context, request *domain.Payment)
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
+
 	return b.responseCharge(response)
 }
 

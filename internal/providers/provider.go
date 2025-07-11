@@ -39,7 +39,10 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 	attempts := 0
 
 	for _, provider := range p.providers {
-		dataCh, errCh := p.charge(ctx, payment, provider)
+		requestCtx, cancel := context.WithTimeout(ctx, p.timeout)
+		defer cancel()
+
+		dataCh, errCh := p.charge(requestCtx, payment, provider)
 		select {
 		case data := <-dataCh:
 			p.logger.Debug("[Payment] Received request successfully",
@@ -60,8 +63,12 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 				zap.String("provider", provider.GetName()),
 				zap.Int("attempt", attempts))
 
+			cancel()
+
 			err = errors.New("Timeout")
 			continue
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		}
 	}
 
