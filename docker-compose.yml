@@ -17,8 +17,6 @@ services:
       dockerfile: $PWD/Dockerfile-stubby
     ports:
       - "8002:8882"
-    environment:
-      PORT: 8882
     volumes:
       - $PWD/mocks/stripe.yml:/app/mock.yml
 
@@ -27,7 +25,5 @@ services:
       dockerfile: $PWD/Dockerfile-stubby
     ports:
       - "8001:8882"
-    environment:
-      PORT: 8882
     volumes:
       - $PWD/mocks/braintree.yml:/app/mock.yml

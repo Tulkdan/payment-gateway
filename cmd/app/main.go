@@ -26,8 +26,8 @@ func main() {
 	defer logger.Sync()
 
 	providers := providers.NewUseProviders([]providers.Provider{
-		providers.NewBraintreeProvider(getEnv("BRAINTREE_URL", "http://localhost:8001")),
-		providers.NewStripeProvider(getEnv("STRIPE_URL", "http://localhost:8002")),
+		providers.NewBraintreeProvider("http://" + getEnv("BRAINTREE_URL", "localhost:8001")),
+		providers.NewStripeProvider("http://" + getEnv("STRIPE_URL", "localhost:8002")),
 	}, logger)
 	paymentsService := service.NewPaymentService(providers)
 
@@ -37,6 +37,7 @@ func main() {
 
 	srvErr := make(chan error, 1)
 	go func() {
+		logger.Info("Starting server", zap.String("port", port))
 		srvErr <- server.Start(ctx)
 	}()
 
