@@ -13,3 +13,4 @@ Content-Type: application/json
 	    "installments": 1
 	}
 }
+HTTP 200
