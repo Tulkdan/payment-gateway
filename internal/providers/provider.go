@@ -36,7 +36,6 @@ func ConfigurableUseProvider(providers []Provider, logger *zap.Logger, timeout t
 
 func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*domain.Provider, error) {
 	var err error = nil
-	attempts := 0
 
 	for _, provider := range p.providers {
 		requestCtx, cancel := context.WithTimeout(ctx, p.timeout)
@@ -46,28 +45,26 @@ func (p *UseProviders) Payment(ctx context.Context, payment *domain.Payment) (*d
 		select {
 		case data := <-dataCh:
 			p.logger.Debug("[Payment] Received request successfully",
-				zap.String("provider", provider.GetName()),
-				zap.Int("attempt", attempts))
+				zap.String("provider", provider.GetName()))
 
 			return data, nil
 		case error := <-errCh:
 			p.logger.Error("[Payment] Received request with error",
 				zap.String("provider", provider.GetName()),
-				zap.Int("attempt", attempts),
 				zap.String("error", error.Error()))
 
 			err = error
 			continue
 		case <-time.After(p.timeout):
 			p.logger.Error("[Payment] Timeout for provider to respond",
-				zap.String("provider", provider.GetName()),
-				zap.Int("attempt", attempts))
+				zap.String("provider", provider.GetName()))
 
 			cancel()
 
 			err = errors.New("Timeout")
 			continue
 		case <-ctx.Done():
+			cancel()
 			return nil, ctx.Err()
 		}
 	}

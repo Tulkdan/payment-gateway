@@ -22,10 +22,13 @@ func (p *PaymentService) CreatePayment(ctx context.Context, input dto.PaymentInp
 		return nil, err
 	}
 
-	_, err = p.providers.Payment(ctx, payment)
+	providerData, err := p.providers.Payment(ctx, payment)
 	if err != nil {
+		payment.UpdateStatus(domain.StatusRejected)
 		return nil, err
 	}
 
-	return &dto.PaymentOutput{Message: "Processed successfully"}, nil
+	payment.UpdateStatus(domain.StatusApproved)
+
+	return dto.NewPaymentOutput(providerData.Id, providerData.CardId, providerData.CurrentAmount), nil
 }

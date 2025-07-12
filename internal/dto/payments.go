@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/google/uuid"
+
 type PaymentCardInput struct {
 	Number         string `json:"number"`
 	HolderName     string `json:"holderName"`
@@ -17,5 +19,15 @@ type PaymentInput struct {
 }
 
 type PaymentOutput struct {
-	Message string `json:"message"`
+	Id            uuid.UUID `json:"id"`
+	CardId        uuid.UUID `json:"cardId"`
+	CurrentAmount uint      `json:"currentAmount"`
+}
+
+func NewPaymentOutput(id, cardId uuid.UUID, currentAmount uint) *PaymentOutput {
+	return &PaymentOutput{
+		Id:            id,
+		CardId:        cardId,
+		CurrentAmount: currentAmount,
+	}
 }
