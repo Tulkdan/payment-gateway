@@ -1,0 +1,30 @@
+* Payment Gateway
+
+
+** Getting started
+
+*** Prerequisites
+
+- [[https://hurl.dev][hurl]] :: CLI tool that runs http requests, similar to curl
+- [[https://docs.docker.com/desktop/][docker :: ]] Using docker to run project and mocks
+- [[https://jqlang.org/][jq]] :: (Optional) CLI tool to query JSON data
+
+*** Usage
+
+Run the project with both providers mocked:
+
+#+begin_src shell
+docker compose up
+#+end_src
+
+In other terminal, make the request with hurl
+
+#+begin_src shell
+hurl request.hurl
+#+end_src
+
+In case you want to see the response with json format, you can use jq
+
+#+begin_src shell
+hurl request.hurl | jq .
+#+end_src
