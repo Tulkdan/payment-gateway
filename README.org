@@ -17,6 +17,9 @@ Run the project with both providers mocked:
 docker compose up
 #+end_src
 
+The docker compose file is configured to build and run 3 dockers, 2 being the mocked providers (Stripe and Braintree), they're both were created using [[https://github.com/mrak/stubby4node][stubby4node]] and the project.
+The main project will use port =8000= in your machine and the providers will use port =8001= and =8002= (this is mostly for running the main project outside docker).
+
 In other terminal, make the request with hurl
 
 #+begin_src shell
