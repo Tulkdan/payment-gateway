@@ -6,7 +6,7 @@
 *** Prerequisites
 
 - [[https://hurl.dev][hurl]] :: CLI tool that runs http requests, similar to curl
-- [[https://docs.docker.com/desktop/][docker :: ]] Using docker to run project and mocks
+- [[https://docs.docker.com/desktop/][docker]] :: Using docker to run project and mocks
 - [[https://just.systems/][just]] ::  CLI runner
 - [[https://jqlang.org/][jq]] :: (Optional) CLI tool to query JSON data
 
